@@ -13,6 +13,7 @@ func parseDataArgs(c *cli.Context) models.StatsConfig {
 	config := models.StatsConfig{
 		Org:      c.String("org"),
 		Team:     c.String("team"),
+		Owner:    c.String("owner"),
 		ApiToken: c.String("api-token"),
 		Start:    c.Int("start"),
 		End:      c.Int("end"),

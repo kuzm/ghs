@@ -7,7 +7,7 @@ This repository is a fork of the [horalstvo/ghs](https://github.com/horalstvo/gh
 This command-line tool gathers pull request details from GitHub and stores as a CSV file. Then, you can analyze the CSV file with spreadsheet software like Google Sheets or Microsoft Excel. 
 
 Features: 
-- Gathers the following pull request details for the given time window from the given organization and team: repository name, repository number, first review time,  first approval time, second approval time, merge time, number of changed files, number of additions, number of deletions 
+- Gathers the following pull request details for the given time window from the given owner or organization and team: repository name, repository number, first review time,  first approval time, second approval time, merge time, number of changed files, number of additions, number of deletions 
 - Review and approval times include only workdays
 - Stores pull request details into a CSV file
 - Retrieves pull requests in chunks (pagination)
@@ -31,6 +31,10 @@ docker build . -t ghs
 ```
 3. Run the docker container:
 ```
+docker run -v $(pwd):/out ghs stats --owner <owner-name> --api-token <api-token> --start -10 --end 0 --file /out/ghs.csv
+```
+or
+```
 docker run -v $(pwd):/out ghs stats --org <org-name> --team <team-name> --api-token <api-token> --start -10 --end 0 --file /out/ghs.csv
 ```
 The resulting CSV data will be stored into the `./ghs.csv` file.
@@ -47,10 +51,14 @@ go get
 3. Build the tool:
 ```
 go build
+chmod +x ghs
 ```
 4. Run the tool:
 ```
-chmod +x ghs
+./ghs stats --owner <owner-name> --api-token <api-token> --start -10 --end 0 --file ghs.csv
+```
+or 
+```
 ./ghs stats --org <org-name> --team <team-name> --api-token <api-token> --start -10 --end 0 --file ghs.csv
 ```
 

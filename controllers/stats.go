@@ -22,15 +22,29 @@ func GetStats(config models.StatsConfig) {
 
 	client := external.GetClient(ctx, config.ApiToken)
 
-	repos := external.GetTeamRepos(ctx, config.Org, config.Team, client)
+	repos := make([]*github.Repository, 0)
 
-	prs := getPullRequests(ctx, repos, config, client)
+	if len(config.Org) > 0 {
+		repos = external.GetTeamRepos(ctx, config.Org, config.Team, client)
+	} else if len(config.Owner) > 0 {
+		repos = external.GetOwnerRepos(ctx, config.Owner, client)
+	} else {
+		fmt.Println("Both organization and owner cannot be specified")
+		os.Exit(1)
+	}
+
+	owner := config.Org
+	if len(config.Org) == 0 {
+		owner = config.Owner
+	}
+
+	prs := getPullRequests(ctx, owner, repos, client)
 
 	prs = filterPullRequests(prs, config.Start, config.End)
 
 	fmt.Printf("Number of PRs opened in the interval: %d\n", aurora.Blue(len(prs)))
 
-	pullRequests := getDetails(ctx, prs, config.Org, config, client)
+	pullRequests := getDetails(ctx, owner, prs, client)
 
 	fmt.Printf("Writing to CSV file '%v'...\n", config.File)
 	file, err := os.Create(config.File)
@@ -52,7 +66,7 @@ func GetStats(config models.StatsConfig) {
 
 }
 
-func getPullRequests(ctx context.Context, repos []*github.Repository, config models.StatsConfig, client *github.Client) []*github.PullRequest {
+func getPullRequests(ctx context.Context, owner string, repos []*github.Repository, client *github.Client) []*github.PullRequest {
 
 	prsPerRepo := make([][]*github.PullRequest, len(repos))
 	var waitGroup sync.WaitGroup
@@ -61,7 +75,7 @@ func getPullRequests(ctx context.Context, repos []*github.Repository, config mod
 	for i, repo := range repos {
 		go func(i int, repoName string) {
 			defer waitGroup.Done()
-			prsPerRepo[i] = external.GetPullRequests(ctx, config.Org, repoName, client)
+			prsPerRepo[i] = external.GetPullRequests(ctx, owner, repoName, client)
 			fmt.Printf("Number of PRs returned for %s: %d\n", repoName, aurora.Blue(len(prsPerRepo[i])))
 		}(i, *repo.Name)
 	}
@@ -75,22 +89,22 @@ func getPullRequests(ctx context.Context, repos []*github.Repository, config mod
 	return prs
 }
 
-func getPullRequest(ctx context.Context, repo string, number int,
-	config models.StatsConfig, client *github.Client) *github.PullRequest {
+func getPullRequest(ctx context.Context, owner string, repo string, number int,
+	client *github.Client) *github.PullRequest {
 
-	pr := external.GetPullRequest(ctx, config.Org, repo, number, client)
+	pr := external.GetPullRequest(ctx, owner, repo, number, client)
 	return pr
 }
 
-func getDetails(ctx context.Context, prs []*github.PullRequest, org string,
-	config models.StatsConfig, client *github.Client) []models.PullRequest {
+func getDetails(ctx context.Context, owner string, prs []*github.PullRequest,
+	client *github.Client) []models.PullRequest {
 
 	fmt.Printf("Getting details for %v pull requests...\n", len(prs))
 
 	pullRequests := make([]models.PullRequest, len(prs))
 
 	for i, pr := range prs {
-		pullRequests[i] = getPullRequestDetails(ctx, org, pr, config, client)
+		pullRequests[i] = getPullRequestDetails(ctx, owner, pr, client)
 
 		// Throttle number of sequential requests to GitHub API
 		if (i+1)%25 == 0 {
@@ -108,11 +122,11 @@ func getDetails(ctx context.Context, prs []*github.PullRequest, org string,
 	return pullRequests
 }
 
-func getPullRequestDetails(ctx context.Context, org string, pr *github.PullRequest,
-	config models.StatsConfig, client *github.Client) models.PullRequest {
+func getPullRequestDetails(ctx context.Context, owner string, pr *github.PullRequest,
+	client *github.Client) models.PullRequest {
 
-	prDetails := getPullRequest(ctx, *pr.Base.Repo.Name, *pr.Number, config, client)
-	reviews := getReviews(ctx, org, *pr.Base.Repo.Name, *pr.Number, client)
+	prDetails := getPullRequest(ctx, owner, *pr.Base.Repo.Name, *pr.Number, client)
+	reviews := getReviews(ctx, owner, *pr.Base.Repo.Name, *pr.Number, client)
 
 	firstReviewedHrs := -1
 	firstApprovedHrs := -1

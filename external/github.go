@@ -72,6 +72,13 @@ func GetTeamRepos(ctx context.Context, org string, team string, client *github.C
 	return repos
 }
 
+// GetOwnerRepos returns repositories of the given owner
+func GetOwnerRepos(ctx context.Context, owner string, client *github.Client) []*github.Repository {
+	repos, _, err := client.Repositories.List(ctx, owner, &github.RepositoryListOptions{})
+	util.Check(err)
+	return repos
+}
+
 // GetTeamID returns the identifier of the team by name
 func getTeamID(ctx context.Context, org string, team string, client *github.Client) (*int64, error) {
 	teams, _, err := client.Teams.ListTeams(ctx, org, &github.ListOptions{})

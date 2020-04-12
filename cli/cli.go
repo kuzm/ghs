@@ -24,6 +24,11 @@ func Start() {
 			Value: "",
 			Usage: "Team name",
 		},
+		cli.StringFlag{
+			Name:  "owner",
+			Value: "",
+			Usage: "Owner (if organization and team are not specified)",
+		},
 		cli.IntFlag{
 			Name:  "start, s",
 			Value: -14,
