@@ -108,7 +108,7 @@ func getDetails(ctx context.Context, owner string, prs []*github.PullRequest,
 
 		// Throttle number of sequential requests to GitHub API
 		if (i+1)%25 == 0 {
-			fmt.Printf("%v pull requests were processed\n", i)
+			fmt.Printf("%v pull requests were processed\n", i+1)
 			time.Sleep(1 * time.Second)
 		}
 	}
