@@ -61,4 +61,3 @@ This project is configured for VS Code. However, you can use other IDEs of your 
 - Code Spell Checker
 
 When developing on macOs, install Xcode and Xcode Command Line Tools. 
-
