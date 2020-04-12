@@ -1,8 +1,8 @@
 package util
 
 import (
-	"testing"
 	"reflect"
+	"testing"
 	"time"
 )
 
@@ -38,6 +38,10 @@ func TestWorkHoursAroundWeekend(t *testing.T) {
 	// Both on the same weekend.
 	workHours = WorkHours(parse("2018-11-24T12:00:00Z"), parse("2018-11-25T20:00:00Z"))
 	assertEqual(t, workHours, 0)
+
+	// Both on workdays but weekend in between.
+	workHours = WorkHours(parse("2020-04-10T14:00:00Z"), parse("2020-04-13T10:00:00Z"))
+	assertEqual(t, workHours, 5)
 }
 
 func TestWorkHoursDays(t *testing.T) {

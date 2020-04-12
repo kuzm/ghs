@@ -53,9 +53,9 @@ func GetStats(config models.StatsConfig) {
 
 	writer := bufio.NewWriter(file)
 
-	fmt.Fprintf(writer, "Repo,Number,FirstReviewedHrs,FirstApprovedHrs,SecondApprovedHrs,MergedHrs,ChangedFiles,Additions,Deletions\n")
+	fmt.Fprintf(writer, "Repo,Number,Created,FirstReviewedHrs,FirstApprovedHrs,SecondApprovedHrs,MergedHrs,ChangedFiles,Additions,Deletions\n")
 	for _, pr := range pullRequests {
-		fmt.Fprintf(writer, "%v,%v,%v,%v,%v,%v,%v,%v,%v\n", pr.Repo, pr.Number,
+		fmt.Fprintf(writer, "%v,%v,%v,%v,%v,%v,%v,%v,%v,%v\n", pr.Repo, pr.Number, pr.Created.Format("2006-01-02T15:04:05-0700"),
 			pr.FirstReviewedHrs, pr.FirstApprovedHrs, pr.SecondApprovedHrs, pr.MergedHrs, pr.ChangedFiles, pr.Additions, pr.Deletions)
 	}
 
@@ -170,9 +170,10 @@ func getPullRequestDetails(ctx context.Context, owner string, pr *github.PullReq
 	}
 
 	pullRequest := models.PullRequest{
-		Repo:              *pr.Base.Repo.Name,
-		Number:            *pr.Number,
-		Created:           *pr.CreatedAt,
+		Repo:    *pr.Base.Repo.Name,
+		Number:  *pr.Number,
+		Created: *pr.CreatedAt,
+
 		FirstReviewedHrs:  firstReviewedHrs,
 		FirstApprovedHrs:  firstApprovedHrs,
 		SecondApprovedHrs: secondApprovedHrs,
