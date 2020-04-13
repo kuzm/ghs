@@ -53,10 +53,16 @@ func GetStats(config models.StatsConfig) {
 
 	writer := bufio.NewWriter(file)
 
-	fmt.Fprintf(writer, "Repo,Number,Created,FirstReviewedHrs,FirstApprovedHrs,SecondApprovedHrs,MergedHrs,ChangedFiles,Additions,Deletions\n")
+	fmt.Fprintf(writer, "Repo,Number,Created,FirstReviewedHrs,FirstApprovedHrs,SecondApprovedHrs,MergedHrs,Merged,ChangedFiles,Additions,Deletions\n")
 	for _, pr := range pullRequests {
-		fmt.Fprintf(writer, "%v,%v,%v,%v,%v,%v,%v,%v,%v,%v\n", pr.Repo, pr.Number, pr.Created.Format("2006-01-02T15:04:05-0700"),
-			pr.FirstReviewedHrs, pr.FirstApprovedHrs, pr.SecondApprovedHrs, pr.MergedHrs, pr.ChangedFiles, pr.Additions, pr.Deletions)
+		dtFormat := "2006-01-02T15:04:05-0700"
+		created := pr.Created.Format(dtFormat)
+		merged := ""
+		if !pr.Merged.IsZero() {
+			merged = pr.Merged.Format(dtFormat)
+		}
+		fmt.Fprintf(writer, "%v,%v,%v,%v,%v,%v,%v,%v,%v,%v,%v\n", pr.Repo, pr.Number, created,
+			pr.FirstReviewedHrs, pr.FirstApprovedHrs, pr.SecondApprovedHrs, pr.MergedHrs, merged, pr.ChangedFiles, pr.Additions, pr.Deletions)
 	}
 
 	writer.Flush()
@@ -133,6 +139,8 @@ func getPullRequestDetails(ctx context.Context, owner string, pr *github.PullReq
 	secondApprovedHrs := -1
 	mergedHrs := -1
 
+	merged := time.Time{}
+
 	changedFiles := -1
 	additions := -1
 	deletions := -1
@@ -154,6 +162,7 @@ func getPullRequestDetails(ctx context.Context, owner string, pr *github.PullReq
 	}
 
 	if prDetails.MergedAt != nil {
+		merged = *pr.MergedAt
 		mergedHrs = util.WorkHours(*pr.CreatedAt, *prDetails.MergedAt)
 	}
 
@@ -173,6 +182,7 @@ func getPullRequestDetails(ctx context.Context, owner string, pr *github.PullReq
 		Repo:    *pr.Base.Repo.Name,
 		Number:  *pr.Number,
 		Created: *pr.CreatedAt,
+		Merged:  merged,
 
 		FirstReviewedHrs:  firstReviewedHrs,
 		FirstApprovedHrs:  firstApprovedHrs,

@@ -17,6 +17,7 @@ type (
 		Number  int
 		Author  string
 		Created time.Time
+		Merged  time.Time
 
 		FirstReviewedHrs  int
 		FirstApprovedHrs  int
