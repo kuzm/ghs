@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -61,8 +62,25 @@ func GetStats(config models.StatsConfig) {
 		if !pr.Merged.IsZero() {
 			merged = pr.Merged.Format(dtFormat)
 		}
+
+		firstReviewedHrs := ""
+		if pr.FirstReviewedHrs >= 0 {
+			firstReviewedHrs = strconv.Itoa(pr.FirstReviewedHrs)
+		}
+		firstApprovedHrs := ""
+		if pr.FirstApprovedHrs >= 0 {
+			firstApprovedHrs = strconv.Itoa(pr.FirstApprovedHrs)
+		}
+		secondApprovedHrs := ""
+		if pr.SecondApprovedHrs >= 0 {
+			secondApprovedHrs = strconv.Itoa(pr.SecondApprovedHrs)
+		}
+		mergedHrs := ""
+		if pr.MergedHrs >= 0 {
+			mergedHrs = strconv.Itoa(pr.MergedHrs)
+		}
 		fmt.Fprintf(writer, "%v,%v,%v,%v,%v,%v,%v,%v,%v,%v,%v\n", pr.Repo, pr.Number, created,
-			pr.FirstReviewedHrs, pr.FirstApprovedHrs, pr.SecondApprovedHrs, pr.MergedHrs, merged, pr.ChangedFiles, pr.Additions, pr.Deletions)
+			firstReviewedHrs, firstApprovedHrs, secondApprovedHrs, mergedHrs, merged, pr.ChangedFiles, pr.Additions, pr.Deletions)
 	}
 
 	writer.Flush()
