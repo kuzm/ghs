@@ -23,11 +23,11 @@ func GetClient(ctx context.Context, apiToken string) *github.Client {
 // GetPullRequests returns pull requests of the given repository
 func GetPullRequests(ctx context.Context, org string, repo string, client *github.Client) []*github.PullRequest {
 	allPrs := make([]*github.PullRequest, 0)
-	pageSize := 50
-	page := -1
+	pageSize := 30
+	page := 0
 	for {
 		page++
-		prs, _, err := client.PullRequests.List(ctx, org, repo, &github.PullRequestListOptions{
+		prs, resp, err := client.PullRequests.List(ctx, org, repo, &github.PullRequestListOptions{
 			Sort:      "created",
 			State:     "all",
 			Direction: "desc",
@@ -39,7 +39,7 @@ func GetPullRequests(ctx context.Context, org string, repo string, client *githu
 		util.Check(err)
 		allPrs = append(allPrs, prs...)
 
-		if len(prs) < pageSize {
+		if resp.NextPage <= 0 {
 			break
 		}
 	}

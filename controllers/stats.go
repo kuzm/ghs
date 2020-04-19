@@ -7,7 +7,6 @@ import (
 	"os"
 	"sort"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/google/go-github/github"
@@ -93,18 +92,11 @@ func GetStats(config models.StatsConfig) {
 func getPullRequests(ctx context.Context, owner string, repos []*github.Repository, client *github.Client) []*github.PullRequest {
 
 	prsPerRepo := make([][]*github.PullRequest, len(repos))
-	var waitGroup sync.WaitGroup
-	waitGroup.Add(len(repos))
 
 	for i, repo := range repos {
-		go func(i int, repoName string) {
-			defer waitGroup.Done()
-			prsPerRepo[i] = external.GetPullRequests(ctx, owner, repoName, client)
-			fmt.Printf("Number of PRs returned for %s: %d\n", repoName, aurora.Blue(len(prsPerRepo[i])))
-		}(i, *repo.Name)
+		prsPerRepo[i] = external.GetPullRequests(ctx, owner, *repo.Name, client)
+		fmt.Printf("Number of PRs returned for %s: %d\n", *repo.Name, aurora.Blue(len(prsPerRepo[i])))
 	}
-
-	waitGroup.Wait()
 
 	prs := make([]*github.PullRequest, 0)
 	for i := range repos {
